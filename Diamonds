@@ -1,0 +1,87 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+df=pd.read_csv('D:/download/real/diamonds/diamonds.csv')
+
+df=df.set_index(['Unnamed: 0'])
+
+df.loc[df['cut']=='Ideal','cut']=5
+df.loc[df['cut']=='Premium','cut']=4
+df.loc[df['cut']=='Very Good','cut']=3
+df.loc[df['cut']=='Good','cut']=2
+df.loc[df['cut']=='Fair','cut']=1
+
+df['color'].unique()
+
+df['color']=df['color'].replace(['D', 'E', 'F', 'G', 'H', 'I', 'J'],[7,6,5,4,3,2,1])
+
+df['clarity'].unique()
+
+df['clarity']=df['clarity'].replace(['IF', 'VVS1', 'VVS2', 'VS1', 'VS2', 'SI1', 'SI2','I1'],[10,9,8,7,6,5,4,3])
+
+df.head()
+
+corr=df.corr(method='pearson')
+
+price=df['price'].values
+
+df=df.drop(['price'],axis=1)
+
+df['price']=price
+df.head()
+
+plt.figure(figsize=(13,10))
+g = sns.heatmap(df.corr(),annot=True,cmap="RdYlGn")
+
+from sklearn.model_selection import train_test_split
+
+X_train=df.drop(['price'],axis=1)
+y_train=df['price']
+X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, shuffle=True)
+
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import GaussianNB
+
+from sklearn.utils import shuffle
+
+def train_and_test(model):
+    model.fit(X_train, y_train)
+    prediction = model.predict(X_val)
+    accuracy = round(model.score(X_val, y_val) * 100, 2)
+    print("Accuracy : ", accuracy, "%")
+    return prediction
+
+from sklearn.linear_model import LinearRegression
+model=LinearRegression()
+model.fit(X_train, y_train)
+prediction=model.predict(X_val)
+print('Score : %.4f' % model.score(X_val, y_val))
+
+from sklearn.model_selection import GridSearchCV , KFold , cross_val_score
+accuracies = cross_val_score(estimator = model, X = X_train, y = y_train, cv = 5,verbose = 1)
+
+print(accuracies)
+
+from sklearn.metrics import mean_squared_error, mean_absolute_error
+print('val Mae Score',mean_absolute_error(y_val,prediction))
+
+y_val
+
+a=pd.DataFrame({'real':y_val,'pred':prediction})
+a['+/-']=a['real']-a['pred']
+
+a
+
+from sklearn.preprocessing import MinMaxScaler , StandardScaler, Imputer, LabelEncoder
+df2=pd.read_csv('D:/download/real/diamonds/diamonds.csv')
+label_cut = LabelEncoder()
+
+df2['cut']=label_cut.fit_transform(df['cut'])
+
+df2
